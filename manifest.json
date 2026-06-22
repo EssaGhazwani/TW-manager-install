@@ -1,8 +1,8 @@
 {
-  "version": "20260622180350",
+  "version": "20260622181949",
   "downloadUrl": "https://github.com/EssaGhazwani/TW-manager-install/releases/download/agent-latest/xkwdstore-agent.exe",
-  "sha256": "8c55b7caf26ac96298089e6ae8e3e5ff70ea2921187dd20370910eb98e9930e3",
-  "size": 55961936,
-  "releasedAt": "2026-06-22T18:04:09Z",
+  "sha256": "877eb9160f9d251fe5cb6b90bd5719696213a3574b7388bbfe6d002af6e4e692",
+  "size": 55961928,
+  "releasedAt": "2026-06-22T18:20:13Z",
   "filename": "xkwdstore-agent.exe"
 }
