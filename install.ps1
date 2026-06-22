@@ -6,7 +6,7 @@
 #   irm https://raw.githubusercontent.com/EssaGhazwani/TW-manager-install/main/install.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
-$repo = 'EssaGhazwani/TW-manager'
+$repo = 'EssaGhazwani/TW-manager-install'
 $releaseUrl = "https://github.com/$repo/releases/download/agent-latest/xkwdstore-agent.exe"
 $desktop = [Environment]::GetFolderPath('Desktop')
 $exePath = Join-Path $desktop 'xkwdstore-agent.exe'
@@ -21,7 +21,6 @@ Write-Host ''
 Write-Host '  [1/3] Downloading XKWDStore Agent...' -ForegroundColor Yellow
 try {
     # Use Invoke-WebRequest which follows GitHub's 302 redirects to the CDN.
-    # WebClient is unreliable for redirected downloads on PowerShell 7.
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Invoke-WebRequest -Uri $releaseUrl -OutFile $exePath -UseBasicParsing
     $sizeMB = [math]::Round((Get-Item $exePath).Length / 1MB, 1)
