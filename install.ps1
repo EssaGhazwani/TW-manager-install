@@ -20,9 +20,10 @@ Write-Host ''
 # ── Step 1: Download the agent .exe from GitHub Releases ──
 Write-Host '  [1/3] Downloading XKWDStore Agent...' -ForegroundColor Yellow
 try {
-    # Follow redirects — GitHub releases return 302 to the actual asset URL
-    $webClient = New-Object System.Net.WebClient
-    $webClient.DownloadFile($releaseUrl, $exePath)
+    # Use Invoke-WebRequest which follows GitHub's 302 redirects to the CDN.
+    # WebClient is unreliable for redirected downloads on PowerShell 7.
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $releaseUrl -OutFile $exePath -UseBasicParsing
     $sizeMB = [math]::Round((Get-Item $exePath).Length / 1MB, 1)
     Write-Host "  ✓ Downloaded xkwdstore-agent.exe ($sizeMB MB)" -ForegroundColor Green
 } catch {
