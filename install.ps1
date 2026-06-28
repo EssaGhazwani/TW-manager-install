@@ -127,7 +127,7 @@ if (Start-XkwdAgentHidden -ExePath $exePath -WorkDir $desktop) {
 }
 
 Write-Host ''
-Write-Host '  The agent will auto-download Firefox on first run (~120 MB).' -ForegroundColor Cyan
+Write-Host '  The agent will auto-download Chrome/Chromium if needed on first run (~150 MB).' -ForegroundColor Cyan
 Write-Host '  Then go to your XKWDStore dashboard to pair this device.' -ForegroundColor Cyan
 Write-Host ''
 Write-Host '  To start later: double-click start.bat on your Desktop.' -ForegroundColor DarkGray
