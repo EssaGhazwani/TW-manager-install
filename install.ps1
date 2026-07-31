@@ -39,8 +39,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Pinned future command — do not change until the package is published.
+# The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
-$AgentCommand = "npx --yes $AgentPackage start"
+$AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
 
 Write-Host ''
 Write-Host '  XKWDStore Agent Installer (Protocol v2)' -ForegroundColor Cyan
@@ -164,6 +165,8 @@ echo Starting XKWDStore Agent (Protocol v2)...
 echo.
 echo Pinned package: $AgentPackage
 echo Server: $Server
+echo.
+echo Command: $AgentCommand
 echo.
 $AgentCommand
 echo.

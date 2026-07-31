@@ -46,6 +46,10 @@ test('installer -NoLaunch run verifies prerequisites without launching the agent
   const batContent = fs.readFileSync(bat, 'utf8');
   assert.ok(batContent.includes('npx --yes @xkwdstore/agent@2.0.1 start'),
     'launcher must contain the pinned npx command');
+  assert.ok(batContent.includes('--server'),
+    'launcher must pass --server to the agent');
+  assert.ok(batContent.includes('https://x.kwdstore.com'),
+    'default server must appear in the executable command');
   assert.ok(batContent.includes('title XKWDStore Agent'),
     'launcher must set a visible title');
 
@@ -113,5 +117,55 @@ test('installer rejects shell metacharacters in AgentVersion', { skip: !isWindow
   assert.ok(output.includes('forbidden shell metacharacters'),
     'must reject shell metacharacters in AgentVersion');
   assert.notStrictEqual(exitCode, 0, 'must exit non-zero on metacharacters');
+  try { fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
+});
+
+test('custom Server appears in the executable launcher command', { skip: !isWindows }, () => {
+  const tmpRoot = path.join(os.tmpdir(), 'xkwd-install-customserver-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));
+  const customServer = 'https://staging.xkwdstore.com';
+  const output = execFileSync(psExe(), [
+    '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+    '-File', SCRIPT,
+    '-NoLaunch',
+    '-Server', customServer,
+    '-InstallRoot', tmpRoot,
+  ], { encoding: 'utf8', timeout: 60000 });
+
+  const bat = path.join(tmpRoot, 'start-xkwdstore-agent.bat');
+  assert.ok(fs.existsSync(bat), 'launcher .bat must be created');
+  const batContent = fs.readFileSync(bat, 'utf8');
+  assert.ok(batContent.includes('--server'),
+    'launcher must pass --server to the agent');
+  assert.ok(batContent.includes(customServer),
+    'custom server must appear in the executable command');
+  assert.ok(!batContent.includes('https://x.kwdstore.com'),
+    'default server must NOT appear when a custom server is provided');
+
+  try { fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
+});
+
+test('launcher does not merely echo the Server (it passes it as a flag)', { skip: !isWindows }, () => {
+  const tmpRoot = path.join(os.tmpdir(), 'xkwd-install-echoserver-' + Date.now() + '-' + Math.floor(Math.random() * 1e6));
+  const customServer = 'https://test.xkwdstore.com';
+  execFileSync(psExe(), [
+    '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+    '-File', SCRIPT,
+    '-NoLaunch',
+    '-Server', customServer,
+    '-InstallRoot', tmpRoot,
+  ], { encoding: 'utf8', timeout: 60000 });
+
+  const bat = path.join(tmpRoot, 'start-xkwdstore-agent.bat');
+  const batContent = fs.readFileSync(bat, 'utf8');
+  // The command line must contain --server followed by the quoted URL.
+  assert.ok(/--server\s+"[^"]+"/.test(batContent),
+    'launcher must pass --server as a command-line flag with a quoted value');
+  // The echo line is informational only; the executable line must have the flag.
+  const cmdLine = batContent.split(/\r?\n/).find(l => l.includes('npx --yes'));
+  assert.ok(cmdLine && cmdLine.includes('--server'),
+    'the npx command line must include --server');
+  assert.ok(cmdLine && cmdLine.includes(customServer),
+    'the npx command line must include the custom server URL');
+
   try { fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
 });

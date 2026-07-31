@@ -148,3 +148,27 @@ test('17. No irm | iex one-line piping in the script header', () => {
   assert.ok(SCRIPT.includes('-ExecutionPolicy Bypass -File install.ps1'),
     'must document -File execution');
 });
+
+// ── Server is passed to the agent launcher ───────────────────────────────────
+
+test('18. Agent command includes --server flag (the CLI real supported syntax)', () => {
+  assert.ok(SCRIPT.includes('--server'),
+    'agent command must include the --server flag');
+  assert.ok(SCRIPT.includes('$AgentPackage start --server'),
+    'the --server flag must be appended to the start command');
+});
+
+test('19. Default Server appears in the executable command', () => {
+  // The default server https://x.kwdstore.com must flow into the agent command.
+  assert.ok(SCRIPT.includes("'https://x.kwdstore.com'"),
+    'default server origin must be declared');
+  // The command must interpolate $Server into the --server flag.
+  assert.ok(SCRIPT.includes('--server `"$Server`"'),
+    'Server must be passed via --server with safe quoting');
+});
+
+test('20. Server value is safely quoted in the command', () => {
+  // The backtick-escaped double quotes prevent command injection in the .bat.
+  assert.ok(SCRIPT.includes('`"$Server`"'),
+    'Server must be wrapped in backtick-escaped double quotes');
+});
