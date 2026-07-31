@@ -1,135 +1,100 @@
-# XKWDStore Agent — One-Line Installer
+# XKWDStore Agent — Protocol-v2 One-Line Installer (staged release)
 # Usage (paste into CMD):
 #   powershell -Command "irm https://raw.githubusercontent.com/EssaGhazwani/TW-manager-install/main/install.ps1 | iex"
 #
 # Or in PowerShell:
 #   irm https://raw.githubusercontent.com/EssaGhazwani/TW-manager-install/main/install.ps1 | iex
+#
+# Options:
+#   -NoLaunch   Install/verify prerequisites only; do not start the agent.
+#               Used by automated tests so the real pinned npx package is
+#               never executed from the public registry during installation.
+#
+# Release state:
+#   Protocol-v2 installer prepared for Agent 2.0.1. Public installation
+#   becomes active after @xkwdstore/agent@2.0.1 is published to npm.
+
+param(
+  [switch]$NoLaunch
+)
 
 $ErrorActionPreference = 'Stop'
-$repo = 'EssaGhazwani/TW-manager-install'
-$releaseUrl = "https://github.com/$repo/releases/download/agent-latest/xkwdstore-agent.exe"
+
+# Pinned future command — do not change until the package is published.
+$AgentPackage = '@xkwdstore/agent@2.0.1'
+$AgentCommand = "npx --yes $AgentPackage start"
+
 $desktop = [Environment]::GetFolderPath('Desktop')
-$exePath = Join-Path $desktop 'xkwdstore-agent.exe'
-$batPath = Join-Path $desktop 'start.bat'
-$launchPath = Join-Path $desktop 'launch-agent.ps1'
-
-function Clear-XkwdStuckUpdater {
-    param([string]$AgentDir)
-
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-        Where-Object { $_.CommandLine -match 'xkwdstore-update|xkwdstore-restart' } |
-        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-
-    $parents = @($env:USERPROFILE, (Split-Path $AgentDir -Parent))
-    foreach ($parent in ($parents | Select-Object -Unique)) {
-        foreach ($name in '.xkwdstore-update.bat', '.xkwdstore-restart.bat') {
-            $file = Join-Path $parent $name
-            if (Test-Path $file) {
-                Remove-Item $file -Force -ErrorAction SilentlyContinue
-            }
-        }
-    }
-}
-
-function Start-XkwdAgentHidden {
-    param(
-        [string]$ExePath,
-        [string]$WorkDir
-    )
-
-    Clear-XkwdStuckUpdater -AgentDir $WorkDir
-
-    $running = Get-Process -Name 'xkwdstore-agent' -ErrorAction SilentlyContinue
-    if ($running) {
-        Write-Host '  Agent already running — skipping duplicate launch.' -ForegroundColor Yellow
-        return $false
-    }
-
-    Start-Process -FilePath $ExePath -WorkingDirectory $WorkDir -WindowStyle Hidden | Out-Null
-    return $true
-}
+$batPath = Join-Path $desktop 'start-xkwdstore-agent.bat'
 
 Write-Host ''
-Write-Host '  XKWDStore Agent Installer' -ForegroundColor Cyan
-Write-Host '  ==========================' -ForegroundColor Cyan
+Write-Host '  XKWDStore Agent Installer (Protocol v2)' -ForegroundColor Cyan
+Write-Host '  ========================================' -ForegroundColor Cyan
 Write-Host ''
 
-# ── Step 0: Stop stuck updater terminals from older agent versions ──
-Write-Host '  [0/4] Cleaning up stuck updater terminals...' -ForegroundColor Yellow
-Clear-XkwdStuckUpdater -AgentDir $desktop
-Write-Host '  ✓ Cleanup done' -ForegroundColor Green
-
-# ── Step 1: Download the agent .exe from GitHub Releases ──
-Write-Host '  [1/4] Downloading XKWDStore Agent...' -ForegroundColor Yellow
+# ── Step 1: Verify Node.js 22+ ─────────────────────────────────────────────
+Write-Host '  [1/3] Checking Node.js...' -ForegroundColor Yellow
 try {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Invoke-WebRequest -Uri $releaseUrl -OutFile $exePath -UseBasicParsing
-    $sizeMB = [math]::Round((Get-Item $exePath).Length / 1MB, 1)
-    Write-Host "  ✓ Downloaded xkwdstore-agent.exe ($sizeMB MB)" -ForegroundColor Green
-} catch {
-    Write-Host "  ✗ Download failed: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host ''
-    Write-Host '  Try downloading manually from:' -ForegroundColor Yellow
-    Write-Host "  $releaseUrl" -ForegroundColor Gray
+  $nodeVer = (node --version 2>$null)
+  if (-not $nodeVer) { throw 'node not found' }
+  $major = [int]($nodeVer -replace '^v(\d+)\..*', '$1')
+  if ($major -lt 22) {
+    Write-Host "  ✗ Node.js $nodeVer detected — version 22 or later is required." -ForegroundColor Red
+    Write-Host '    Install Node.js 22+ from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
     exit 1
+  }
+  Write-Host "  ✓ Node.js $nodeVer" -ForegroundColor Green
+} catch {
+  Write-Host '  ✗ Node.js was not found.' -ForegroundColor Red
+  Write-Host '    Install Node.js 22+ from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
+  exit 1
 }
 
-# ── Step 2: Create launch-agent.ps1 + start.bat ──
-Write-Host '  [2/4] Creating launch scripts...' -ForegroundColor Yellow
-
-$launchContent = @'
-$ErrorActionPreference = 'SilentlyContinue'
-$desktop = Split-Path -Parent $MyInvocation.MyCommand.Path
-$exePath = Join-Path $desktop 'xkwdstore-agent.exe'
-
-function Clear-XkwdStuckUpdater {
-    param([string]$AgentDir)
-    Get-CimInstance Win32_Process |
-        Where-Object { $_.CommandLine -match 'xkwdstore-update|xkwdstore-restart' } |
-        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-    $parents = @($env:USERPROFILE, (Split-Path $AgentDir -Parent))
-    foreach ($parent in ($parents | Select-Object -Unique)) {
-        foreach ($name in '.xkwdstore-update.bat', '.xkwdstore-restart.bat') {
-            $file = Join-Path $parent $name
-            if (Test-Path $file) { Remove-Item $file -Force -ErrorAction SilentlyContinue }
-        }
-    }
+# ── Step 2: Verify npx (ships with Node.js) ────────────────────────────────
+Write-Host '  [2/3] Checking npx...' -ForegroundColor Yellow
+try {
+  $npxVer = (npx --version 2>$null)
+  if (-not $npxVer) { throw 'npx not found' }
+  Write-Host "  ✓ npx $npxVer" -ForegroundColor Green
+} catch {
+  Write-Host '  ✗ npx was not found. It ships with Node.js 22+.' -ForegroundColor Red
+  Write-Host '    Reinstall Node.js from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
+  exit 1
 }
 
-Clear-XkwdStuckUpdater -AgentDir $desktop
-
-$running = Get-Process -Name 'xkwdstore-agent' -ErrorAction SilentlyContinue
-if ($running) { exit 0 }
-
-Start-Process -FilePath $exePath -WorkingDirectory $desktop -WindowStyle Hidden | Out-Null
-'@
-
-Set-Content -Path $launchPath -Value $launchContent -Encoding UTF8
-
+# ── Step 3: Create desktop launcher ────────────────────────────────────────
+Write-Host '  [3/3] Creating desktop launcher...' -ForegroundColor Yellow
 $batContent = @"
 @echo off
 title XKWDStore Agent
-echo Starting XKWDStore Agent (background)...
-powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0launch-agent.ps1"
-echo Agent started in the background. You can close this window.
-timeout /t 3 /nobreak >nul
+echo Starting XKWDStore Agent (Protocol v2)...
+echo.
+echo Pinned package: $AgentPackage
+echo.
+$AgentCommand
+echo.
+echo Agent has stopped. Press any key to close.
+pause >nul
 "@
-
 Set-Content -Path $batPath -Value $batContent -Encoding ASCII
-Write-Host '  ✓ launch-agent.ps1 + start.bat created' -ForegroundColor Green
+Write-Host "  ✓ Launcher created: $batPath" -ForegroundColor Green
 
-# ── Step 3: Launch the agent (hidden, single instance) ──
-Write-Host '  [3/4] Launching XKWDStore Agent...' -ForegroundColor Yellow
-if (Start-XkwdAgentHidden -ExePath $exePath -WorkDir $desktop) {
-    Write-Host '  ✓ Agent launched in background' -ForegroundColor Green
+# ── Launch (unless -NoLaunch) ───────────────────────────────────────────────
+if ($NoLaunch) {
+  Write-Host ''
+  Write-Host '  -NoLaunch specified — prerequisites verified, agent not started.' -ForegroundColor DarkGray
+  Write-Host '  To start the agent later, double-click start-xkwdstore-agent.bat.' -ForegroundColor DarkGray
 } else {
-    Write-Host '  ✓ Existing agent left running' -ForegroundColor Green
+  Write-Host '  Launching XKWDStore Agent...' -ForegroundColor Yellow
+  Start-Process -FilePath $batPath -WorkingDirectory $desktop
+  Write-Host '  ✓ Agent launcher started' -ForegroundColor Green
 }
 
 Write-Host ''
-Write-Host '  The agent will auto-download Chrome/Chromium if needed on first run (~150 MB).' -ForegroundColor Cyan
-Write-Host '  Then go to your XKWDStore dashboard to pair this device.' -ForegroundColor Cyan
+Write-Host '  Protocol-v2 installer prepared for Agent 2.0.1.' -ForegroundColor Cyan
+Write-Host '  Public installation becomes active after @xkwdstore/agent@2.0.1 is published to npm.' -ForegroundColor Cyan
 Write-Host ''
-Write-Host '  To start later: double-click start.bat on your Desktop.' -ForegroundColor DarkGray
-Write-Host '  The agent auto-updates automatically — no manual updates needed.' -ForegroundColor DarkGray
+Write-Host '  Then go to your XKWDStore dashboard to authorize this device.' -ForegroundColor Cyan
+Write-Host ''
+Write-Host '  The agent does NOT auto-update — the pinned version is in the launcher.' -ForegroundColor DarkGray
 Write-Host ''
