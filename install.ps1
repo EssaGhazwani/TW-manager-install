@@ -1,4 +1,4 @@
-# XKWDStore Agent — One-Line Installer
+﻿# XKWDStore Agent — One-Line Installer
 # Usage (paste into CMD):
 #   powershell -Command "irm https://raw.githubusercontent.com/EssaGhazwani/TW-manager-install/main/install.ps1 | iex"
 #
@@ -55,9 +55,27 @@ Write-Host '  ==========================' -ForegroundColor Cyan
 Write-Host ''
 
 # ── Step 0: Stop stuck updater terminals from older agent versions ──
-Write-Host '  [0/4] Cleaning up stuck updater terminals...' -ForegroundColor Yellow
+Write-Host '  [0/5] Cleaning up stuck updater terminals...' -ForegroundColor Yellow
 Clear-XkwdStuckUpdater -AgentDir $desktop
 Write-Host '  ✓ Cleanup done' -ForegroundColor Green
+
+# ── Step 0b: Stop any running agent so we can overwrite the .exe ──
+Write-Host '  Stopping running agent (if any)...' -ForegroundColor Yellow
+$runningAgent = Get-Process -Name 'xkwdstore-agent' -ErrorAction SilentlyContinue
+if ($runningAgent) {
+    try {
+        $runningAgent | Stop-Process -Force -ErrorAction Stop
+        Write-Host '  ✓ Stopped running xkwdstore-agent.exe' -ForegroundColor Green
+        # Give Windows a moment to release the file handle.
+        Start-Sleep -Milliseconds 800
+    } catch {
+        Write-Host "  ! Could not stop running agent: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host '    Close the agent manually (task tray → Quit, or Task Manager), then rerun the installer.' -ForegroundColor Yellow
+        exit 1
+    }
+} else {
+    Write-Host '  ✓ No running agent detected' -ForegroundColor Green
+}
 
 # ── Step 1: Download the agent .exe from GitHub Releases ──
 Write-Host '  [1/4] Downloading XKWDStore Agent...' -ForegroundColor Yellow
