@@ -1,4 +1,4 @@
-# XKWDStore Agent — Protocol-v2 Windows Installer
+﻿# XKWDStore Agent — Protocol-v2 Windows Installer
 #
 # Safe download-then-run installation. Do NOT pipe `irm ... | iex` — download
 # the script first, inspect it, then execute it.
@@ -38,7 +38,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned future command — do not change until the package is published.
+# Pinned command — @xkwdstore/agent@2.0.1 is published on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
@@ -205,8 +205,8 @@ if ($NoLaunch) {
 }
 
 Write-Host ''
-Write-Host "  Protocol-v2 installer prepared for Agent $AgentVersion." -ForegroundColor Cyan
-Write-Host "  Public installation becomes active after @xkwdstore/agent@$AgentVersion is published to npm." -ForegroundColor Cyan
+Write-Host "  Protocol-v2 installer for Agent $AgentVersion."
+Write-Host "  @xkwdstore/agent@$AgentVersion is publicly available on npm."
 Write-Host ''
 Write-Host '  Then go to your XKWDStore dashboard to authorize this device.' -ForegroundColor Cyan
 Write-Host ''

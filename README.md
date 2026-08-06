@@ -1,13 +1,8 @@
 # TW-manager-install
 
-Public installer script for the XKWDStore Agent — **Protocol-v2 staged release**.
+Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **Protocol-v2 installer prepared for Agent 2.0.1. Public installation becomes
-> active after `@xkwdstore/agent@2.0.1` is published to npm.**
->
-> Version 2.0.1 is **not usable through the public installer** until it is
-> published to npm. Do not run the launcher expecting a working agent until
-> publication is complete.
+> **@xkwdstore/agent@2.0.1 is now publicly available on npm.**
 
 ---
 
