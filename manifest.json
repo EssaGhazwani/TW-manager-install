@@ -1,8 +1,12 @@
 {
-  "version": "20260628151954",
-  "downloadUrl": "https://github.com/EssaGhazwani/TW-manager-install/releases/download/agent-latest/xkwdstore-agent.exe",
-  "sha256": "57c045f6c2f4b9f75e4aa561024c2f44969ffa494c7e9933f1cd4c55b56ea786",
-  "size": 55980713,
-  "releasedAt": "2026-06-28T15:20:16Z",
-  "filename": "xkwdstore-agent.exe"
+  "version": "2.0.1",
+  "protocol": "v2",
+  "package": "@xkwdstore/agent@2.0.1",
+  "command": "npx --yes @xkwdstore/agent@2.0.1 start",
+  "downloadUrl": null,
+  "sha256": null,
+  "size": null,
+  "releasedAt": null,
+  "filename": null,
+  "note": "Protocol-v2 installer prepared for Agent 2.0.1. Public installation becomes active after @xkwdstore/agent@2.0.1 is published to npm. No EXE binary is distributed; the launcher uses the pinned npx command. This manifest is retained for historical reference and no longer points to a downloadable binary."
 }
