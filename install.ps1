@@ -1,4 +1,4 @@
-﻿# XKWDStore Agent — Protocol-v2 Windows Installer
+# XKWDStore Agent — Protocol-v2 Windows Installer
 #
 # Safe download-then-run installation. Do NOT pipe `irm ... | iex` — download
 # the script first, inspect it, then execute it.
@@ -15,7 +15,7 @@
 #   -NoLaunch       Install/verify prerequisites only; do not start the agent.
 #                   Used by automated tests so the real pinned npx package is
 #                   never executed from the public registry during installation.
-#   -AgentVersion   Override the pinned agent version (default: 2.0.1).
+#   -AgentVersion   Override the pinned agent version (default: 2.0.3).
 #   -Server         Override the XKWDStore server origin URL.
 #   -InstallRoot    Override the install root directory.
 #                   Default: %LOCALAPPDATA%\XKWDStore\Agent
@@ -31,14 +31,14 @@
 
 param(
   [switch]$NoLaunch,
-  [string]$AgentVersion = '2.0.1',
+  [string]$AgentVersion = '2.0.3',
   [string]$Server = 'https://x.kwdstore.com',
   [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'XKWDStore\Agent')
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command — @xkwdstore/agent@2.0.1 is published on npm.
+# Pinned command — @xkwdstore/agent@2.0.3 is published on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
