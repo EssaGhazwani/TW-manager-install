@@ -15,7 +15,7 @@
 #   -NoLaunch       Install/verify prerequisites only; do not start the agent.
 #                   Used by automated tests so the real pinned npx package is
 #                   never executed from the public registry during installation.
-#   -AgentVersion   Override the pinned agent version (default: 2.0.3).
+#   -AgentVersion   Override the pinned agent version (default: 2.0.2).
 #   -Server         Override the XKWDStore server origin URL.
 #   -InstallRoot    Override the install root directory.
 #                   Default: %LOCALAPPDATA%\XKWDStore\Agent
@@ -31,14 +31,15 @@
 
 param(
   [switch]$NoLaunch,
-  [string]$AgentVersion = '2.0.3',
+  [string]$AgentVersion = '2.0.2',
   [string]$Server = 'https://x.kwdstore.com',
   [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'XKWDStore\Agent')
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command -- @xkwdstore/agent@2.0.3 is published on npm.
+# Pinned command -- @xkwdstore/agent@2.0.2 is the current published version on npm.
+# Version 2.0.3 is pending publication and will be promoted after verification.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
@@ -206,7 +207,7 @@ if ($NoLaunch) {
 
 Write-Host ''
 Write-Host "  Protocol-v2 installer for Agent $AgentVersion."
-Write-Host "  @xkwdstore/agent@$AgentVersion is publicly available on npm."
+Write-Host "  @xkwdstore/agent@$AgentVersion is the current published version on npm."
 Write-Host ''
 Write-Host '  Then go to your XKWDStore dashboard to authorize this device.' -ForegroundColor Cyan
 Write-Host ''
