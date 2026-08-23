@@ -1,6 +1,6 @@
-# XKWDStore Agent — Protocol-v2 Windows Installer
+# XKWDStore Agent -- Protocol-v2 Windows Installer
 #
-# Safe download-then-run installation. Do NOT pipe `irm ... | iex` — download
+# Safe download-then-run installation. Do NOT pipe `irm ... | iex` -- download
 # the script first, inspect it, then execute it.
 #
 # Download (CMD):
@@ -38,7 +38,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command — @xkwdstore/agent@2.0.3 is published on npm.
+# Pinned command -- @xkwdstore/agent@2.0.3 is published on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
@@ -48,52 +48,52 @@ Write-Host '  XKWDStore Agent Installer (Protocol v2)' -ForegroundColor Cyan
 Write-Host '  ========================================' -ForegroundColor Cyan
 Write-Host ''
 
-# ── Step 0: Verify Windows OS ──────────────────────────────────────────────
+# == Step 0: Verify Windows OS ==============================================
 Write-Host '  [0/5] Checking operating system...' -ForegroundColor Yellow
 if (-not $IsWindows -and -not ($PSVersionTable.Platform -eq 'Win32NT') -and -not ($env:OS -eq 'Windows_NT')) {
-  Write-Host '  ✗ This installer only runs on Windows.' -ForegroundColor Red
+  Write-Host '  X This installer only runs on Windows.' -ForegroundColor Red
   Write-Host '    On macOS or Linux, install Node.js 22+ and run:' -ForegroundColor Yellow
   Write-Host "      npx --yes $AgentPackage start" -ForegroundColor Yellow
   exit 1
 }
 $osCaption = (Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption
 if ($osCaption) {
-  Write-Host "  ✓ $osCaption" -ForegroundColor Green
+  Write-Host "  OK $osCaption" -ForegroundColor Green
 } else {
-  Write-Host '  ✓ Windows detected' -ForegroundColor Green
+  Write-Host '  OK Windows detected' -ForegroundColor Green
 }
 
-# ── Step 1: Verify Node.js 22+ ─────────────────────────────────────────────
+# == Step 1: Verify Node.js 22+ =============================================
 Write-Host '  [1/5] Checking Node.js...' -ForegroundColor Yellow
 try {
   $nodeVer = (node --version 2>$null)
   if (-not $nodeVer) { throw 'node not found' }
   $major = [int]($nodeVer -replace '^v(\d+)\..*', '$1')
   if ($major -lt 22) {
-    Write-Host "  ✗ Node.js $nodeVer detected — version 22 or later is required." -ForegroundColor Red
+    Write-Host "  X Node.js $nodeVer detected -- version 22 or later is required." -ForegroundColor Red
     Write-Host '    Install Node.js 22+ from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
     exit 1
   }
-  Write-Host "  ✓ Node.js $nodeVer" -ForegroundColor Green
+  Write-Host "  OK Node.js $nodeVer" -ForegroundColor Green
 } catch {
-  Write-Host '  ✗ Node.js was not found.' -ForegroundColor Red
+  Write-Host '  X Node.js was not found.' -ForegroundColor Red
   Write-Host '    Install Node.js 22+ from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
   exit 1
 }
 
-# ── Step 2: Verify npx (ships with Node.js) ────────────────────────────────
+# == Step 2: Verify npx (ships with Node.js) ================================
 Write-Host '  [2/5] Checking npx...' -ForegroundColor Yellow
 try {
   $npxVer = (npx --version 2>$null)
   if (-not $npxVer) { throw 'npx not found' }
-  Write-Host "  ✓ npx $npxVer" -ForegroundColor Green
+  Write-Host "  OK npx $npxVer" -ForegroundColor Green
 } catch {
-  Write-Host '  ✗ npx was not found. It ships with Node.js 22+.' -ForegroundColor Red
+  Write-Host '  X npx was not found. It ships with Node.js 22+.' -ForegroundColor Red
   Write-Host '    Reinstall Node.js from https://nodejs.org/ and rerun this installer.' -ForegroundColor Yellow
   exit 1
 }
 
-# ── Step 3: Verify installed Google Chrome ─────────────────────────────────
+# == Step 3: Verify installed Google Chrome =================================
 Write-Host '  [3/5] Checking Google Chrome...' -ForegroundColor Yellow
 $chromePaths = @(
   "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
@@ -105,7 +105,7 @@ foreach ($p in $chromePaths) {
   if ($p -and (Test-Path -LiteralPath $p)) { $chromeExe = $p; break }
 }
 if (-not $chromeExe) {
-  Write-Host '  ✗ Google Chrome was not found.' -ForegroundColor Red
+  Write-Host '  X Google Chrome was not found.' -ForegroundColor Red
   Write-Host '    Install Google Chrome from https://www.google.com/chrome/ and rerun this installer.' -ForegroundColor Yellow
   Write-Host '    This installer never downloads Chromium or any other browser.' -ForegroundColor DarkGray
   exit 1
@@ -115,23 +115,23 @@ try {
   $fi = Get-Item -LiteralPath $chromeExe -ErrorAction Stop
   $chromeVer = $fi.VersionInfo.ProductVersion
 } catch {}
-Write-Host "  ✓ Google Chrome$(if ($chromeVer) { " $chromeVer" })" -ForegroundColor Green
+Write-Host "  OK Google Chrome$(if ($chromeVer) { " $chromeVer" })" -ForegroundColor Green
 
-# ── Step 4: Validate inputs and create install root ────────────────────────
+# == Step 4: Validate inputs and create install root ========================
 Write-Host '  [4/5] Preparing install root...' -ForegroundColor Yellow
 
-# Safe input validation — reject control characters and shell metacharacters.
+# Safe input validation -- reject control characters and shell metacharacters.
 function Test-SafeInput([string]$value, [string]$name) {
   if (-not $value -or $value.Trim().Length -eq 0) {
-    Write-Host "  ✗ $name must not be empty." -ForegroundColor Red
+    Write-Host "  X $name must not be empty." -ForegroundColor Red
     exit 1
   }
   if ($value -match '[\x00-\x1f\x7f]') {
-    Write-Host "  ✗ $name contains control characters." -ForegroundColor Red
+    Write-Host "  X $name contains control characters." -ForegroundColor Red
     exit 1
   }
   if ($value -match '[;&|`$<>]') {
-    Write-Host "  ✗ $name contains forbidden shell metacharacters." -ForegroundColor Red
+    Write-Host "  X $name contains forbidden shell metacharacters." -ForegroundColor Red
     exit 1
   }
 }
@@ -146,16 +146,16 @@ try {
     throw 'invalid scheme'
   }
 } catch {
-  Write-Host "  ✗ Server must be a valid http(s) URL: $Server" -ForegroundColor Red
+  Write-Host "  X Server must be a valid http(s) URL: $Server" -ForegroundColor Red
   exit 1
 }
 
 if (-not (Test-Path -LiteralPath $InstallRoot)) {
   New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
 }
-Write-Host "  ✓ Install root: $InstallRoot" -ForegroundColor Green
+Write-Host "  OK Install root: $InstallRoot" -ForegroundColor Green
 
-# ── Step 5: Create visible terminal launcher ───────────────────────────────
+# == Step 5: Create visible terminal launcher ===============================
 Write-Host '  [5/5] Creating terminal launcher...' -ForegroundColor Yellow
 $batPath = Join-Path $InstallRoot 'start-xkwdstore-agent.bat'
 $batContent = @"
@@ -174,7 +174,7 @@ echo Agent has stopped. Press any key to close.
 pause >nul
 "@
 Set-Content -Path $batPath -Value $batContent -Encoding ASCII
-Write-Host "  ✓ Launcher created: $batPath" -ForegroundColor Green
+Write-Host "  OK Launcher created: $batPath" -ForegroundColor Green
 
 # Also create a desktop shortcut that points at the visible launcher.
 $desktop = [Environment]::GetFolderPath('Desktop')
@@ -184,24 +184,24 @@ try {
   $sc = $wsh.CreateShortcut($shortcutPath)
   $sc.TargetPath = $batPath
   $sc.WorkingDirectory = $InstallRoot
-  $sc.WindowStyle = 1  # Normal (visible) window — never hidden.
+  $sc.WindowStyle = 1  # Normal (visible) window -- never hidden.
   $sc.Description = 'XKWDStore Agent (Protocol v2)'
   $sc.Save()
-  Write-Host "  ✓ Desktop shortcut created: $shortcutPath" -ForegroundColor Green
+  Write-Host "  OK Desktop shortcut created: $shortcutPath" -ForegroundColor Green
 } catch {
   Write-Host '  ! Could not create desktop shortcut (non-fatal).' -ForegroundColor DarkGray
 }
 
-# ── Launch (unless -NoLaunch) ───────────────────────────────────────────────
+# == Launch (unless -NoLaunch) ===============================================
 if ($NoLaunch) {
   Write-Host ''
-  Write-Host '  -NoLaunch specified — prerequisites verified, agent not started.' -ForegroundColor DarkGray
+  Write-Host '  -NoLaunch specified -- prerequisites verified, agent not started.' -ForegroundColor DarkGray
   Write-Host "  To start the agent later, double-click $batPath" -ForegroundColor DarkGray
 } else {
   Write-Host '  Launching XKWDStore Agent...' -ForegroundColor Yellow
-  # Visible foreground terminal window — never hidden, never a background service.
+  # Visible foreground terminal window -- never hidden, never a background service.
   Start-Process -FilePath $batPath -WorkingDirectory $InstallRoot -WindowStyle Normal
-  Write-Host '  ✓ Agent launcher started (visible terminal window)' -ForegroundColor Green
+  Write-Host '  OK Agent launcher started (visible terminal window)' -ForegroundColor Green
 }
 
 Write-Host ''
@@ -210,6 +210,6 @@ Write-Host "  @xkwdstore/agent@$AgentVersion is publicly available on npm."
 Write-Host ''
 Write-Host '  Then go to your XKWDStore dashboard to authorize this device.' -ForegroundColor Cyan
 Write-Host ''
-Write-Host '  The agent does NOT auto-update — the pinned version is in the launcher.' -ForegroundColor DarkGray
+Write-Host '  The agent does NOT auto-update -- the pinned version is in the launcher.' -ForegroundColor DarkGray
 Write-Host '  No service, no Scheduled Task, no hidden process, no Chromium download.' -ForegroundColor DarkGray
 Write-Host ''
