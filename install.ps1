@@ -31,15 +31,14 @@
 
 param(
   [switch]$NoLaunch,
-  [string]$AgentVersion = '2.0.2',
+  [string]$AgentVersion = '2.0.3',
   [string]$Server = 'https://x.kwdstore.com',
   [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'XKWDStore\Agent')
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command -- @xkwdstore/agent@2.0.2 is the current published version on npm.
-# Version 2.0.3 is pending publication and will be promoted after verification.
+# Pinned command -- @xkwdstore/agent@2.0.3 is the current published version on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""

@@ -44,7 +44,7 @@ test('installer -NoLaunch run verifies prerequisites without launching the agent
   const bat = path.join(tmpRoot, 'start-xkwdstore-agent.bat');
   assert.ok(fs.existsSync(bat), 'launcher .bat must be created in the install root');
   const batContent = fs.readFileSync(bat, 'utf8');
-  assert.ok(batContent.includes('npx --yes @xkwdstore/agent@2.0.1 start'),
+  assert.ok(batContent.includes('npx --yes @xkwdstore/agent@2.0.3 start'),
     'launcher must contain the pinned npx command');
   assert.ok(batContent.includes('--server'),
     'launcher must pass --server to the agent');
@@ -68,7 +68,7 @@ test('installer never invokes the pinned public-registry npx command', { skip: !
 
   // Under -NoLaunch the real npx command must never be executed — only written
   // into the .bat launcher for later manual use.
-  assert.ok(!/npx --yes @xkwdstore\/agent@\d+\.\d+\.\d+ start\b/.test(output.replace('Pinned package: ', '').replace('npx --yes @xkwdstore/agent@2.0.1 start', '')),
+  assert.ok(!/npx --yes @xkwdstore\/agent@\d+\.\d+\.\d+ start\b/.test(output.replace('Pinned package: ', '').replace('npx --yes @xkwdstore/agent@2.0.3 start', '')),
     'must not execute the pinned npx command during -NoLaunch');
   assert.ok(!output.includes('Agent has stopped'),
     'must not run the agent to completion under -NoLaunch');

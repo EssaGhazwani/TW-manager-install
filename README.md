@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.0.1 is now publicly available on npm.**
+> **@xkwdstore/agent@2.0.3 is now publicly available on npm.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.0.1` | Override the pinned agent version. |
+| `-AgentVersion` | `2.0.3` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,21 +71,25 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `CODE READY — RELEASE AND DEPLOYMENT REQUIRED`**
+**Final status: `AGENT 2.0.3 PUBLISHED`**
 
-The installer code is complete and structurally validated, but the release is
-not operational for end users yet. The required release order is:
+The Protocol-v2 release order is complete for npm publication:
 
-1. Review and merge the TW-manager hotfix.
-2. Publish `@xkwdstore/agent@2.0.1` to npm.
-3. Verify the package from a clean temporary environment.
-4. Review and merge `TW-manager-install`.
-5. Deploy the updated backend.
-6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON.
-7. Test first-run enrollment on a real Windows computer.
+1. Review and merge the TW-manager hotfix. ✔ done
+2. Publish `@xkwdstore/agent@2.0.3` to npm. ✔ published (latest = 2.0.3)
+3. Verify the package from a clean temporary environment. ✔ verified
+   (`--version` prints 2.0.3, exit 0; `doctor` vs production exit 0)
+4. Review and merge `TW-manager-install`. ✔ installer promoted to 2.0.3
+5. Deploy the updated backend. — separate owner action (not part of installer
+   promotion)
+6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
+   Protocol-v2 JSON; `recommendedAgentVersion` reflects 2.0.2 until the backend
+   deployment in step 5 completes
+7. Test first-run enrollment on a real Windows computer. — owner acceptance
+   step
 
-Until steps 1–7 are complete, the release state remains
-`CODE READY — RELEASE AND DEPLOYMENT REQUIRED`.
+Steps 1–4 are complete; steps 5 and 7 remain owner deployment/acceptance
+actions outside this installer repository.
 
 ---
 
@@ -95,7 +99,7 @@ Until steps 1–7 are complete, the release state remains
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.0.1` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.0.3` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -110,7 +114,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.0.1` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.0.3` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |

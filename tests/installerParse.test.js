@@ -21,9 +21,9 @@ test('1. -NoLaunch switch is declared', () => {
   assert.ok(SCRIPT.includes('[switch]$NoLaunch'), '-NoLaunch switch must be declared');
 });
 
-test('2. -AgentVersion parameter is declared with default 2.0.1', () => {
-  assert.ok(SCRIPT.includes("[string]$AgentVersion = '2.0.1'"),
-    '-AgentVersion must be declared with default 2.0.1');
+test('2. -AgentVersion parameter is declared with default 2.0.3', () => {
+  assert.ok(SCRIPT.includes("[string]$AgentVersion = '2.0.3'"),
+    '-AgentVersion must be declared with default 2.0.3');
 });
 
 test('3. -Server parameter is declared with default origin', () => {
