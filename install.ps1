@@ -15,7 +15,7 @@
 #   -NoLaunch       Install/verify prerequisites only; do not start the agent.
 #                   Used by automated tests so the real pinned npx package is
 #                   never executed from the public registry during installation.
-#   -AgentVersion   Override the pinned agent version (default: 2.0.2).
+#   -AgentVersion   Override the pinned agent version (default: 2.0.4).
 #   -Server         Override the XKWDStore server origin URL.
 #   -InstallRoot    Override the install root directory.
 #                   Default: %LOCALAPPDATA%\XKWDStore\Agent
@@ -31,15 +31,24 @@
 
 param(
   [switch]$NoLaunch,
-  [string]$AgentVersion = '2.0.3',
+  [string]$AgentVersion = '2.0.4',
   [string]$Server = 'https://x.kwdstore.com',
   [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'XKWDStore\Agent')
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command -- @xkwdstore/agent@2.0.3 is the current published version on npm.
+# Pinned command -- @xkwdstore/agent@2.0.4 is the canonical released version on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
+#
+# WHY THE EXACT PIN MATTERS (do not switch to @latest, and do not move to 2.0.5):
+#   2.0.3 contained a real defect -- its _startSession did not forward the complete
+#   schema-4 identity tuple (serverUuid/tenantUuid) to resolveProfileDir, so every
+#   launch failed with "profile identity is missing or malformed: serverUuid".
+#   2.0.4 is the canonical release with the corrected identity forwarding.
+#   2.0.5 is published on npm but its shipped sessionHandler.js is NOT reproducible
+#   from reviewed repository commits/tags and has no proven producing commit, so it
+#   must not be installed until that is reconciled.
 $AgentPackage = "@xkwdstore/agent@$AgentVersion"
 $AgentCommand = "npx --yes $AgentPackage start --server `"$Server`""
 
