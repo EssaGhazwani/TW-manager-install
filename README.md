@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.0.4 is the canonical installer version.**
+> **@xkwdstore/agent@2.0.7 is the canonical installer version.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.0.4` | Override the pinned agent version. |
+| `-AgentVersion` | `2.0.7` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,30 +71,30 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `AGENT 2.0.4 INSTALLER PIN`**
+**Final status: `AGENT 2.0.7 INSTALLER PIN`**
 
-The Protocol-v2 installer pins the canonical agent release **2.0.4**:
+The Protocol-v2 installer pins the canonical agent release **2.0.7**:
 
 1. Review and merge the TW-manager hotfix. ✔ done
 2. Publish the agent release to npm. ✔ 2.0.4 published; 2.0.5 published later
 3. Verify the package from a clean temporary environment. ✔ verified
-4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.0.4
+4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.0.7
 5. Deploy the updated backend. — separate owner action (not part of installer
    promotion)
 6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
-   Protocol-v2 JSON (`recommendedAgentVersion` = 2.0.4)
+   Protocol-v2 JSON (`recommendedAgentVersion` = 2.0.7)
 7. Test first-run enrollment on a real Windows computer. — owner acceptance
    step
 
 Steps 1–4 are complete; steps 5 and 7 remain owner deployment/acceptance
 actions outside this installer repository.
 
-### Why 2.0.4 and not `@latest` or 2.0.5
+### Why 2.0.7 and not `@latest` or 2.0.5
 
 - **2.0.3 is harmful.** Its `_startSession` did not forward the complete schema-4
   identity tuple (`serverUuid`/`tenantUuid`) to `resolveProfileDir`, so every
   launch failed with `profile identity is missing or malformed: serverUuid`.
-- **2.0.4 is canonical.** It contains the corrected schema-4 identity forwarding.
+- **2.0.7 is canonical.** It contains the corrected schema-4 identity forwarding.
 - **2.0.5 is not adoptable yet.** It is published on npm, but its shipped
   `sessionHandler.js` is **not reproducible** from reviewed repository
   commits/tags and has no proven producing commit (`gitHead` absent). Installing
@@ -110,7 +110,7 @@ actions outside this installer repository.
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.0.4` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.0.7` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -125,7 +125,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.0.4` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.0.7` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |
