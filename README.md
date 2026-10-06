@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.0.4 is the canonical installer version.**
+> **@xkwdstore/agent@2.1.2 is the canonical installer version.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.0.4` | Override the pinned agent version. |
+| `-AgentVersion` | `2.1.2` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,34 +71,58 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `AGENT 2.0.4 INSTALLER PIN`**
+**Final status: `AGENT 2.1.2 INSTALLER PIN`**
 
-The Protocol-v2 installer pins the canonical agent release **2.0.4**:
+The Protocol-v2 installer pins the canonical agent release **2.1.2**:
 
 1. Review and merge the TW-manager hotfix. ✔ done
-2. Publish the agent release to npm. ✔ 2.0.4 published; 2.0.5 published later
-3. Verify the package from a clean temporary environment. ✔ verified
-4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.0.4
+2. Publish the agent release to npm. ✔ 2.1.2 published (2.1.0 and 2.1.1 are
+   published but **not** usable — see below)
+3. Verify the package from a clean temporary environment. ✔ verified, including
+   a real Windows host install (broker starts and connects to production)
+4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.2
 5. Deploy the updated backend. — separate owner action (not part of installer
    promotion)
 6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
-   Protocol-v2 JSON (`recommendedAgentVersion` = 2.0.4)
+   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.2)
 7. Test first-run enrollment on a real Windows computer. — owner acceptance
    step
 
 Steps 1–4 are complete; steps 5 and 7 remain owner deployment/acceptance
 actions outside this installer repository.
 
-### Why 2.0.4 and not `@latest` or 2.0.5
+> **Known limitation (owner action).** This installer still creates a *visible
+> per-user launcher*. Agent 2.1.x is a MACHINE-WIDE generation (a Windows
+> service plus a per-session worker, state under `%ProgramData%`). Promoting it
+> to the machine-wide installer described in
+> `TW-manager/reports/PUBLIC-INSTALLER-2.1.0-DESIGN.md` is a **separate, pending
+> change**: where a machine-wide service is already installed, a launcher-run
+> broker exits immediately on the machine's global broker mutex. Until that
+> redesign lands, 2.1.2 through this launcher is correct in *code* but not in
+> *install shape*.
+
+### Why 2.1.2 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
 
 - **2.0.3 is harmful.** Its `_startSession` did not forward the complete schema-4
   identity tuple (`serverUuid`/`tenantUuid`) to `resolveProfileDir`, so every
   launch failed with `profile identity is missing or malformed: serverUuid`.
-- **2.0.4 is canonical.** It contains the corrected schema-4 identity forwarding.
-- **2.0.5 is not adoptable yet.** It is published on npm, but its shipped
+- **2.0.4 fixed the schema-4 identity forwarding** and remained canonical until
+  the 2.1.x machine-wide generation.
+- **2.0.5 is not adoptable.** It is published on npm, but its shipped
   `sessionHandler.js` is **not reproducible** from reviewed repository
   commits/tags and has no proven producing commit (`gitHead` absent). Installing
   it would distribute unreviewed code.
+- **2.1.0 and 2.1.1 are published but broken.** Both shipped an incomplete
+  package. 2.1.0 omitted the two C# sources that `install-machine-agent.ps1`
+  compiles, and both omitted `src/brokerConnectionSupervisor.js`, which `cli.js`
+  requires unconditionally — installing either on a real Windows host left the
+  broker **crash-looping** with `Cannot find module './brokerConnectionSupervisor'`
+  while the service still reported `Running`.
+- **2.1.2 is canonical.** It replaces the hand-enumerated `files` list with the
+  whole `src/` tree, fixes a broken relative `require` in
+  `scripts/worker-entry.js`, and is pinned by a test that installs the packed
+  tarball exactly as a consumer would and asserts every relative require in it
+  resolves.
 - **`@latest` is forbidden.** A pinned installer must never let a future npm
   publication silently change the code a user installs.
 
@@ -110,7 +134,7 @@ actions outside this installer repository.
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.0.4` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.1.2` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -125,7 +149,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.0.4` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.2` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |
