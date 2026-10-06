@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.1.3 is the canonical installer version.**
+> **@xkwdstore/agent@2.1.4 is the canonical installer version.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.1.3` | Override the pinned agent version. |
+| `-AgentVersion` | `2.1.4` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,20 +71,20 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `AGENT 2.1.3 INSTALLER PIN`**
+**Final status: `AGENT 2.1.4 INSTALLER PIN`**
 
-The Protocol-v2 installer pins the canonical agent release **2.1.3**:
+The Protocol-v2 installer pins the canonical agent release **2.1.4**:
 
 1. Review and merge the TW-manager hotfix. ✔ done
-2. Publish the agent release to npm. ✔ 2.1.3 published (2.1.0 and 2.1.1 are
+2. Publish the agent release to npm. ✔ 2.1.4 published (2.1.0 and 2.1.1 are
    published but **not** usable — see below)
 3. Verify the package from a clean temporary environment. ✔ verified, including
    a real Windows host install (broker starts and connects to production)
-4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.3
+4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.4
 5. Deploy the updated backend. — separate owner action (not part of installer
    promotion)
 6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
-   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.3)
+   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.4)
 7. Test first-run enrollment on a real Windows computer. — owner acceptance
    step
 
@@ -98,10 +98,10 @@ actions outside this installer repository.
 > `TW-manager/reports/PUBLIC-INSTALLER-2.1.0-DESIGN.md` is a **separate, pending
 > change**: where a machine-wide service is already installed, a launcher-run
 > broker exits immediately on the machine's global broker mutex. Until that
-> redesign lands, 2.1.3 through this launcher is correct in *code* but not in
+> redesign lands, 2.1.4 through this launcher is correct in *code* but not in
 > *install shape*.
 
-### Why 2.1.3 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
+### Why 2.1.4 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
 
 - **2.0.3 is harmful.** Its `_startSession` did not forward the complete schema-4
   identity tuple (`serverUuid`/`tenantUuid`) to `resolveProfileDir`, so every
@@ -118,19 +118,27 @@ actions outside this installer repository.
   requires unconditionally — installing either on a real Windows host left the
   broker **crash-looping** with `Cannot find module './brokerConnectionSupervisor'`
   while the service still reported `Running`.
-- **2.1.2 is also broken on a clean host.** Every version through 2.1.2 could
-  install with *no dependencies at all*: a normal `npm install
+- **2.1.2 installed with no dependencies at all.** A normal `npm install
   @xkwdstore/agent` hoists dependencies to the caller's `node_modules`, so the
   package directory ships none, and the installer copied only what happened to
   sit beside it. With no prior install the broker crash-looped with
   `Cannot find module 'playwright-core'`.
-- **2.1.3 is canonical.** It replaces the hand-enumerated `files` list with the
+- **2.1.3 could not open a browser.** Profile directories were ACL-locked to the
+  applying process's own SID + Administrators + SYSTEM, but Chromium runs as the
+  **interactive session user** (the worker is started with
+  `CreateProcessAsUser(WTSQueryUserToken(active session))`). Every launch failed
+  with `Failed to create a ProcessSingleton for your profile directory ... Lock
+  file can not be created: Access is denied. (0x5)`, and the profile was
+  unreadable and unwritable by that user.
+- **2.1.4 is canonical.** It replaces the hand-enumerated `files` list with the
   whole `src/` tree, fixes a broken relative `require` in
-  `scripts/worker-entry.js`, and makes the machine-wide installer provision its
-  own dependency tree (`npm ci --omit=dev`, probed and failing closed). It is
-  pinned by a test that installs the packed tarball exactly as a consumer would
-  and asserts every relative require in it resolves, plus an installer test for
-  the dependency step. Verified end to end on a clean Windows host.
+  `scripts/worker-entry.js`, makes the machine-wide installer provision its own
+  dependency tree (`npm ci --omit=dev`, probed, failing closed), and grants the
+  active console user access to the browser profile. Pinned by an npm-tarball
+  test (every relative require resolves), an installer test for the dependency
+  step, and five profile-ACL regression tests. Verified end to end on two real
+  Windows hosts — a browser opens, stays open, and uses the centrally assigned
+  proxy.
 - **`@latest` is forbidden.** A pinned installer must never let a future npm
   publication silently change the code a user installs.
 
@@ -142,7 +150,7 @@ actions outside this installer repository.
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.1.3` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.1.4` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -157,7 +165,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.3` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.4` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |
