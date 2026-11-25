@@ -18,12 +18,12 @@ const README = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 
 // ── Canonical agent version ─────────────────────────────────────────────────
 //
-// The canonical install version is 2.1.8: 2.0.3 contains the schema-4 identity
+// The canonical install version is 2.1.9: 2.0.3 contains the schema-4 identity
 // defect ("profile identity is missing or malformed: serverUuid"), and npm 2.0.5
 // is published but NOT reproducible from reviewed source, so it must not be
 // distributed. `@latest` is forbidden because a pinned installer must never let
 // a future publication silently change the installed code.
-const CANONICAL_AGENT_VERSION = '2.1.8';
+const CANONICAL_AGENT_VERSION = '2.1.9';
 
 // ── Parameter declarations ───────────────────────────────────────────────────
 
