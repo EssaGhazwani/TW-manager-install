@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.1.4 is the canonical installer version.**
+> **@xkwdstore/agent@2.1.5 is the canonical installer version.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.1.4` | Override the pinned agent version. |
+| `-AgentVersion` | `2.1.5` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,25 +71,24 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `AGENT 2.1.4 INSTALLER PIN`**
+**Final status: `AGENT 2.1.5 INSTALLER PIN`**
 
-The Protocol-v2 installer pins the canonical agent release **2.1.4**:
+The Protocol-v2 installer pins the canonical agent release **2.1.5**:
 
 1. Review and merge the TW-manager hotfix. ✔ done
-2. Publish the agent release to npm. ✔ 2.1.4 published (2.1.0 and 2.1.1 are
-   published but **not** usable — see below)
+2. Publish the agent release to npm. ✔ 2.1.5 published as `latest` (2.1.0 and
+   2.1.1 are published but **not** usable — see below)
 3. Verify the package from a clean temporary environment. ✔ verified, including
    a real Windows host install (broker starts and connects to production)
-4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.4
-5. Deploy the updated backend. — separate owner action (not part of installer
-   promotion)
+4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.5
+5. Deploy the updated backend. ✔ deployed (serves `recommendedAgentVersion` 2.1.5)
 6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
-   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.4)
+   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.5)
 7. Test first-run enrollment on a real Windows computer. — owner acceptance
    step
 
-Steps 1–4 are complete; steps 5 and 7 remain owner deployment/acceptance
-actions outside this installer repository.
+Steps 1–6 are complete. Step 7 (first-run enrollment on a clean Windows host)
+remains an owner acceptance action outside this installer repository.
 
 > **Known limitation (owner action).** This installer still creates a *visible
 > per-user launcher*. Agent 2.1.x is a MACHINE-WIDE generation (a Windows
@@ -98,10 +97,10 @@ actions outside this installer repository.
 > `TW-manager/reports/PUBLIC-INSTALLER-2.1.0-DESIGN.md` is a **separate, pending
 > change**: where a machine-wide service is already installed, a launcher-run
 > broker exits immediately on the machine's global broker mutex. Until that
-> redesign lands, 2.1.4 through this launcher is correct in *code* but not in
+> redesign lands, 2.1.5 through this launcher is correct in *code* but not in
 > *install shape*.
 
-### Why 2.1.4 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
+### Why 2.1.5 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
 
 - **2.0.3 is harmful.** Its `_startSession` did not forward the complete schema-4
   identity tuple (`serverUuid`/`tenantUuid`) to `resolveProfileDir`, so every
@@ -130,7 +129,15 @@ actions outside this installer repository.
   with `Failed to create a ProcessSingleton for your profile directory ... Lock
   file can not be created: Access is denied. (0x5)`, and the profile was
   unreadable and unwritable by that user.
-- **2.1.4 is canonical.** It replaces the hand-enumerated `files` list with the
+- **2.1.5 is canonical.** It adds browser connectivity to the 2.1.4 generation: a
+  bounded navigation timeout with a main-frame stall guard (a stalled document is
+  replaced by a typed diagnostic page instead of an indefinite `about:blank`),
+  capability-based proxy health across every Google/Chrome Web Store endpoint,
+  bounded authentication retries that keep the device identity, and same-device
+  recovery. Through the proxy it was verified end to end: Google, Chrome Web
+  Store and X load real pages, cookies/localStorage survive a browser restart, and
+  a second profile shares nothing.
+- **2.1.4 was canonical before it.** It replaces the hand-enumerated `files` list with the
   whole `src/` tree, fixes a broken relative `require` in
   `scripts/worker-entry.js`, makes the machine-wide installer provision its own
   dependency tree (`npm ci --omit=dev`, probed, failing closed), and grants the
@@ -150,7 +157,7 @@ actions outside this installer repository.
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.1.4` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.1.5` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -165,7 +172,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.4` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.5` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |

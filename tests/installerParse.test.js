@@ -18,12 +18,12 @@ const README = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 
 // ── Canonical agent version ─────────────────────────────────────────────────
 //
-// The canonical install version is 2.1.4: 2.0.3 contains the schema-4 identity
+// The canonical install version is 2.1.5: 2.0.3 contains the schema-4 identity
 // defect ("profile identity is missing or malformed: serverUuid"), and npm 2.0.5
 // is published but NOT reproducible from reviewed source, so it must not be
 // distributed. `@latest` is forbidden because a pinned installer must never let
 // a future publication silently change the installed code.
-const CANONICAL_AGENT_VERSION = '2.1.4';
+const CANONICAL_AGENT_VERSION = '2.1.5';
 
 // ── Parameter declarations ───────────────────────────────────────────────────
 
@@ -276,7 +276,7 @@ test('24. no EXECUTABLE / CURRENT-INSTALL surface resolves to 2.0.3 or 2.0.5', (
 
 test('24b. historical provenance prose is PRESERVED (not deleted to satisfy a regex)', () => {
   // The counterpart to test 24: the explanatory record must keep existing, so a
-  // future reader knows WHY 2.1.4 is pinned and why 2.0.5 was not adopted.
+  // future reader knows WHY 2.1.5 is pinned and why 2.0.5 was not adopted.
   assert.ok(/2\.0\.3/.test(README), 'README must retain the 2.0.3 provenance explanation');
   assert.ok(/2\.0\.5/.test(README), 'README must retain the 2.0.5 provenance explanation');
   assert.ok(/2\.0\.3/.test(SCRIPT), 'install.ps1 must retain the 2.0.3 pin rationale');
