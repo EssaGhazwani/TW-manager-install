@@ -2,7 +2,7 @@
 
 Public installer script for the XKWDStore Agent — **Protocol-v2 release**.
 
-> **@xkwdstore/agent@2.1.10 is the canonical installer version.**
+> **@xkwdstore/agent@2.1.11 is the canonical installer version.**
 
 ---
 
@@ -31,7 +31,7 @@ pinned inside the launcher for reproducibility.
 | Option | Default | Purpose |
 |---|---|---|
 | `-NoLaunch` | (switch) | Verify prerequisites only; do not start the agent. |
-| `-AgentVersion` | `2.1.10` | Override the pinned agent version. |
+| `-AgentVersion` | `2.1.11` | Override the pinned agent version. |
 | `-Server` | `https://x.kwdstore.com` | Override the XKWDStore server origin URL. |
 | `-InstallRoot` | `%LOCALAPPDATA%\XKWDStore\Agent` | Override the install root directory. |
 
@@ -71,19 +71,19 @@ starting the agent. Automated tests use this to avoid executing the real pinned
 
 ## Staged-release status
 
-**Final status: `AGENT 2.1.10 INSTALLER PIN`**
+**Final status: `AGENT 2.1.11 INSTALLER PIN`**
 
-The Protocol-v2 installer pins the canonical agent release **2.1.10**:
+The Protocol-v2 installer pins the canonical agent release **2.1.11**:
 
 1. Review and merge the TW-manager hotfix. ✔ done
-2. Publish the agent release to npm. ✔ 2.1.10 published as `latest` (2.1.0 and
+2. Publish the agent release to npm. ✔ 2.1.11 published as `latest` (2.1.0 and
    2.1.1 are published but **not** usable — see below)
 3. Verify the package from a clean temporary environment. ✔ verified, including
    a real Windows host install (broker starts and connects to production)
-4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.10
-5. Deploy the updated backend. ✔ deployed (serves `recommendedAgentVersion` 2.1.10)
+4. Promote `TW-manager-install` to the canonical pin. ✔ installer pinned to 2.1.11
+5. Deploy the updated backend. ✔ deployed (serves `recommendedAgentVersion` 2.1.11)
 6. Verify `/api/agent/compatibility` returns Protocol-v2 JSON. ✔ returns
-   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.10)
+   Protocol-v2 JSON (`recommendedAgentVersion` = 2.1.11)
 7. Test first-run enrollment on a real Windows computer. — owner acceptance
    step
 
@@ -97,10 +97,10 @@ remains an owner acceptance action outside this installer repository.
 > `TW-manager/reports/PUBLIC-INSTALLER-2.1.0-DESIGN.md` is a **separate, pending
 > change**: where a machine-wide service is already installed, a launcher-run
 > broker exits immediately on the machine's global broker mutex. Until that
-> redesign lands, 2.1.10 through this launcher is correct in *code* but not in
+> redesign lands, 2.1.11 through this launcher is correct in *code* but not in
 > *install shape*.
 
-### Why 2.1.10 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
+### Why 2.1.11 and not `@latest`, 2.0.5, or 2.1.0/2.1.1
 
 - **2.0.3 is harmful.** Its `_startSession` did not forward the complete schema-4
   identity tuple (`serverUuid`/`tenantUuid`) to `resolveProfileDir`, so every
@@ -129,23 +129,46 @@ remains an owner acceptance action outside this installer repository.
   with `Failed to create a ProcessSingleton for your profile directory ... Lock
   file can not be created: Access is denied. (0x5)`, and the profile was
   unreadable and unwritable by that user.
-- **2.1.10 is canonical.** It fixes the profile-identity failure that blocked every
-  managed-browser start on an affected host after the 2.1.9 upgrade. The schema-4
-  identity marker is written by the Session-0 broker as `SYSTEM` and read by the
-  per-session worker as the interactive console user; the writer granted that user
-  on the profile *directory* only, and the DACL is created **protected**
-  (inheritance disabled), so `identity.json` stayed readable by `SYSTEM` +
-  `Administrators` alone. The worker got `EPERM`, and a read error was reported as
-  a **corrupt** marker — surfaced as `PROFILE_MARKER_MISSING` for a profile whose
-  bytes and integrity hash were perfectly valid. The writer now grants the marker
-  FILE the same principal set as the directory, `EPERM`/`EACCES`/`EBUSY` is its own
-  `unreadable` state with the fail-closed code `PROFILE_MARKER_UNREADABLE`, and
-  nothing is quarantined on a permission fault. No timeout, proxy, TLS, DNS-pin,
-  QUIC, WebRTC or profile-isolation setting was relaxed, and no profile, cookie,
-  session or extension byte was removed. Verified on the affected machine: the
-  real managed session starts and navigates through the production API, and all
-  six required Google URL variants load in the live managed browser with zero
-  guard stalls.
+- **2.1.11 is canonical.** It fixes a defect in 2.1.10's own MACHINE INSTALLER.
+  `install-machine-agent.ps1` ends by stopping any *proven legacy Agent* process
+  left over from a 2.0.x per-user install, and that ownership test was an inline
+  PowerShell regex (`@xkwdstore[\\/]agent(@\d|\\|\s|")`) which matches **any**
+  path inside the package. Run from the published package layout
+  (`...\node_modules\@xkwdstore\agent\scripts\install-machine-agent.ps1`) the
+  installer therefore matched **itself**, performed a complete and correct
+  installation (program files, ACLs, service host, service verified `Running`,
+  legacy startup retired) and then terminated its own process, so it died without
+  an exit code and the caller saw a failure. The ownership rule is no longer
+  duplicated in PowerShell: the decision comes from the already-tested
+  `legacyStartup.classifyAgentProcesses()` through a `classify` CLI, identification
+  is positive (the package real entry point, an exec-position spec followed by
+  `start`/`service`, or the legacy `start-xkwdstore-agent.bat`), and the installer
+  passes its own PID as a protection seed so that PID, every ancestor and every
+  descendant (npm, `csc.exe`, node probes) are spared. Unrelated PowerShell,
+  Node.js and browser processes are never classified as legacy; if classification
+  cannot be trusted nothing is stopped (fail closed). Verified with the CANDIDATE
+  TARBALL extracted into the published layout on the affected machine: upgrade,
+  repeated install, service restart, uninstall without `-PurgeData`, fresh
+  install and graceful shutdown all returned exit code 0, and the profile tree
+  stayed byte-identical (1016 files, 92,221,954 B, unchanged marker identity and
+  integrity hash).
+- **2.1.10 was canonical before it.** It fixed the profile-identity failure that
+  blocked every managed-browser start on an affected host after the 2.1.9
+  upgrade. The schema-4 identity marker is written by the Session-0 broker as
+  `SYSTEM` and read by the per-session worker as the interactive console user; the
+  writer granted that user on the profile *directory* only, and the DACL is
+  created **protected** (inheritance disabled), so `identity.json` stayed readable
+  by `SYSTEM` + `Administrators` alone. The worker got `EPERM`, and a read error was
+  reported as a **corrupt** marker - surfaced as `PROFILE_MARKER_MISSING` for a
+  profile whose bytes and integrity hash were perfectly valid. The writer now
+  grants the marker FILE the same principal set as the directory,
+  `EPERM`/`EACCES`/`EBUSY` is its own `unreadable` state with the fail-closed code
+  `PROFILE_MARKER_UNREADABLE`, and nothing is quarantined on a permission fault.
+  No timeout, proxy, TLS, DNS-pin, QUIC, WebRTC or profile-isolation setting was
+  relaxed, and no profile, cookie, session or extension byte was removed.
+  Verified on the affected machine: the real managed session starts and navigates
+  through the production API, and all six required Google URL variants load in the
+  live managed browser with zero guard stalls.
 - **2.1.9 was canonical before it.** It adds two fixes on top of the 2.1.7 browser-connectivity
   generation. A bounded navigation now owns its own budget, so the agent's own
   stall guard can no longer cancel a slow-but-recoverable document with its
@@ -190,7 +213,7 @@ remains an owner acceptance action outside this installer repository.
   `version`, `help`, and `doctor` commands. The unpublished package is **not**
   tested through public-registry `npx`.
 - **Installer launch tests** — use `-NoLaunch` or a mocked `npx` command. The
-  real pinned `npx @xkwdstore/agent@2.1.10` command is never executed from the
+  real pinned `npx @xkwdstore/agent@2.1.11` command is never executed from the
   public registry during installation validation.
 
 ---
@@ -205,7 +228,7 @@ Key differences:
 
 | Aspect | EXE-era (obsolete) | Protocol-v2 (current) |
 |---|---|---|
-| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.10` |
+| Distribution | GitHub Release `.exe` download | `npx --yes @xkwdstore/agent@2.1.11` |
 | Size | ~56 MB binary | Small launcher script |
 | Updates | Auto-updater scripts | Pinned version in launcher |
 | Prerequisites | None checked | Windows OS + Node.js 22+ + npx + Chrome verified |

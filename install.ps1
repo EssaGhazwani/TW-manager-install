@@ -15,7 +15,7 @@
 #   -NoLaunch       Install/verify prerequisites only; do not start the agent.
 #                   Used by automated tests so the real pinned npx package is
 #                   never executed from the public registry during installation.
-#   -AgentVersion   Override the pinned agent version (default: 2.1.10).
+#   -AgentVersion   Override the pinned agent version (default: 2.1.11).
 #   -Server         Override the XKWDStore server origin URL.
 #   -InstallRoot    Override the install root directory.
 #                   Default: %LOCALAPPDATA%\XKWDStore\Agent
@@ -31,21 +31,26 @@
 
 param(
   [switch]$NoLaunch,
-  [string]$AgentVersion = '2.1.10',
+  [string]$AgentVersion = '2.1.11',
   [string]$Server = 'https://x.kwdstore.com',
   [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA 'XKWDStore\Agent')
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Pinned command -- @xkwdstore/agent@2.1.10 is the canonical released version on npm.
+# Pinned command -- @xkwdstore/agent@2.1.11 is the canonical released version on npm.
 # The --server flag is the CLI's real supported syntax (cli.js flags.server).
 #
 # WHY THE EXACT PIN MATTERS (do not switch to @latest, and do not move to 2.0.5):
 #   2.0.3 contained a real defect -- its _startSession did not forward the complete
 #   schema-4 identity tuple (serverUuid/tenantUuid) to resolveProfileDir, so every
 #   launch failed with "profile identity is missing or malformed: serverUuid".
-#   2.1.10 is the canonical release: the identity marker FILE now carries the
+#   2.1.11 is the canonical release: the machine installer stops only POSITIVELY
+#   IDENTIFIED obsolete agent processes and protects its own process tree, so an
+#   installation from the published package layout can no longer terminate itself
+#   after succeeding (2.1.10's inline "proven legacy Agent" pattern matched the
+#   installer's own command line and killed its own process, losing the exit code).
+#   2.1.10 fixed the identity-marker ownership: the marker FILE carries the
 #   same principal set as the profile directory (so the per-session worker can
 #   read a marker the SYSTEM broker wrote) and an unreadable marker is its own
 #   fail-closed state instead of being misreported as missing. It keeps 2.1.9's
